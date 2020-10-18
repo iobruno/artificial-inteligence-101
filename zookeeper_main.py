@@ -1,4 +1,5 @@
-import pprint
+import matplotlib.pyplot as plt
+import networkx as nx
 from constraint_satisfaction_problems.csp import CSP
 from constraint_satisfaction_problems.zookeeper import ZookeeperConstraint
 from typing import Dict, Optional
@@ -32,11 +33,49 @@ def main():
         .add_constraint(ZookeeperConstraint.MustBeInCageID("Leao", 1, reason="Regra #7"))
 
     result: Optional[Dict[str, int]] = problem.backtracking_search()
+
     if result:
-        pp = pprint.PrettyPrinter(indent=2)
-        pp.pprint(result)
+        draw_layout(result)
     else:
         print("There's no solution for the Problem with the current Constraints")
+
+
+def draw_layout(result):
+    g = nx.Graph()
+
+    g.add_edge('Cage 1', 'Cage 2')
+    g.add_edge('Cage 2', 'Cage 3')
+    g.add_edge('Cage 3', 'Cage 4')
+    [g.add_edge(key, f"Cage {value}") for key, value in result.items()]
+
+    position = nx.kamada_kawai_layout(g)
+
+    nx.draw_networkx_nodes(g, pos=position,
+                           nodelist=['Cage 1', 'Cage 2', 'Cage 3', 'Cage 4'],
+                           node_color='#999999',
+                           node_size=1800)
+
+    nx.draw_networkx_nodes(g, pos=position,
+                           nodelist=list(result.keys()),
+                           node_color='#444444',
+                           node_size=1500)
+
+    nx.draw_networkx_edges(g, pos=position,
+                           edgelist=g.edges,
+                           width=1,
+                           alpha=0.5,
+                           edge_color="black")
+
+    nx.draw_networkx_labels(g, pos=position,
+                            font_size=8,
+                            font_family="sans-serif",
+                            font_color="white")
+
+    plt.rcParams['figure.figsize'] = [16, 9]
+    plt.rcParams['figure.dpi'] = 400
+    plt.title("Zookeeper Animal Setup")
+    plt.axis("off")
+    plt.show()
 
 
 if __name__ == "__main__":
